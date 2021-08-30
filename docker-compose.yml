@@ -1,0 +1,41 @@
+version: '3.9'
+
+
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: postgres_omni
+      POSTGRES_USER: postgres_omnichall
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: postgres_omni
+      PGDATA: /tmp
+
+
+  redis:
+    image:  bitnami/redis:latest
+    ports:
+      - "6379:6379"
+    environment:
+      ALLOW_EMPTY_PASSWORD: "no"
+      REDIS_PASSWORD: ABCDE
+
+
+  challange:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/code
+    command: >
+       sh -c "
+       python manage.py migrate &&
+       python manage.py runserver 0.0.0.0:8000
+       "
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
